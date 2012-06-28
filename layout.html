@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+    <head>
+        <script type="text/javascript" src="./d3.v2.min.js"></script>
+        <script type="text/javascript" src="http://mbostock.github.com/d3/d3.layout.js"></script>
+        <script type="text/javascript" src="http://mbostock.github.com/d3/d3.geom.js"></script> 
+        <script type="text/javascript" src="../jqueries/jquery-1.6.2.min.js"></script>
+        <!--
+	    <link type="text/css" rel="stylesheet" href="prettify.css">
+	    <script type="text/javascript" src="prettify.js"></script>-->
+        <link type="text/css" rel="stylesheet" href="style.css">
+        
+        
+        <title>egovis</title>
+        
+        
+        
+    </head>
+    <body>
+        <div id="body">
+            <div style="height:300px; width:750px; margin-left:auto; margin-right:auto; margin-top:1em" id="graph">
+            </div>
+            <pre style="font-size:0.7em" class="prettyprint">
+var force2 = d3.layout.force()
+    .charge(-50).nodes(json.nodes).size([750, 300]).start();
+    
+var node = vis.selectAll("g").data(json.nodes).enter()
+    .append("g")
+    .attr("x", function(d) { return d.x; })
+    .attr("y", function(d) { return d.y; })
+    .call(force.drag);
+
+            </pre>
+            <script>
+   
+    
+                var w = 750,
+                    h = 300,
+                    fill = d3.scale.category20();
+            
+                vis = d3.select("#graph")
+                    .append("svg")//.append("g").attr('graph2')
+                    
+                
+                d3.json(
+                    //'http://localhost:8000/data/hackr_event.json', 
+                    'http://localhost:8887/d3/examples/data/datapublishers.json',
+                    function(json){
+                 //  console.warn(d3.layout.force())
+                 
+
+                                        var force = d3.layout.force()
+                        .charge(-0.2)
+                        .nodes(json.features)
+                        .size([100, 100])
+                        .start();
+                   var to_bubble=[];
+                   n = json.features.length;
+       var to_bubble=[]
+  filter_by_city =function (city)
+  {
+
+       json.features.forEach(function(data) { 
+        if (data.properties.city==city) 
+            { 
+                to_bubble.push(data)
+            }
+
+            
+   })
+       return to_bubble;
+  }
+       
+                   
+                    var node = vis.selectAll("g")
+                        .data(filter_by_city('Paris'))
+                        .enter().append("g")
+                        .attr("id", function(d){ return d.id;})
+                        .attr("class", "node")
+                         .attr("x", function(d) { return d.x; })
+                        .attr("y", function(d) { return d.y; })
+
+                        .call(force.drag);
+
+                    function add_circles (node,attr)
+                    {
+                        var force = d3.layout.force()
+                        .charge(-0.2)
+                        .nodes(node)
+                        .size([50, 50])
+                        .start();
+                        //console.warn(force)
+                    node.append('circle')
+                        .attr("cx", function(d) { return d.x; })
+                        .attr("cy", function(d) { return d.y; })
+                         .attr('r', function(d) { return d.properties.num_collections*5})
+                          .attr('fill','red')
+                          .attr('opacity',0.5)
+                          .attr('fill',attr.fill)
+                       // .attr('height', 40)
+                        console.warn(node)
+                        force.on("tick", function() {
+                        node.attr(
+                            "transform", 
+                            function(d) { return "translate(" + d.x + "," + d.y + ")"; }
+                        );
+                    });
+                    }
+                  
+                    add_circles(node,{'fill':'red'})
+                    
+                       var node = vis.selectAll("g")
+                        .data(filter_by_city('Strasbourg'))
+                        .enter().append("g")
+                        .attr("id", function(d){ return d.id;})
+                        .attr("class", "node")
+                         .attr("x", function(d) { return d.x; })
+                        .attr("y", function(d) { return d.y; })
+
+                        .call(force.drag);
+                    
+                    add_circles(node,{'fill':'blue'})
+
+                    d3.select("#graph").on("click", function() {
+                        console.log('click')
+                        json.features.forEach(function(o, i) {
+                            o.cx += (Math.random() - .5) * 50;
+                            o.cy += (Math.random() - .5) * 50;
+                        });
+                        force.resume();
+                    });
+                      });
+            
+                
+            </script>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>Mercator Projection</title>
+    <script type="text/javascript" src="../../d3.v2.js"></script>
+    <script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="../../lib/jquery-ui/jquery-ui.min.js"></script>
+    <style type="text/css">
+
+@import url("../../lib/jquery-ui/jquery-ui.css");
+
+body, .ui-widget {
+  font: 14px Helvetica Neue;
+}
+
+svg {
+  width: 960px;
+  height: 500px;
+  border: solid 1px #ccc;
+  background: #eee;
+}
+
+line {
+  stroke: brown;
+  stroke-dasharray: 4,2;
+}
+
+path {
+  fill: #ccc;
+  stroke: #fff;
+}
+
+div {
+  width: 960px;
+}
+
+    </style>
+  </head>
+  <body>
+    <h3>Mercator Projection</h3>
+    <script type="text/javascript">
+
+  width= 960;
+  height= 500;
+
+//focusing france on SVG
+  xy=d3.geo.mercator().translate([453,1872]).scale(11000)
+  path=d3.geo.path().projection(xy);
+
+var svg = d3.select("body")
+  .append("svg")
+  .append("g")
+  .attr("id", "polygons");
+
+//svg.append("g").attr("id", "polygons");
+//svg.append("g").attr("id", "points")
+points_svg=d3.select("svg")
+  //.append("svg").attr("id", "points")
+
+d3.json("../data/regions.json", function(collection) {
+
+ svg.select("#polygons")
+    .selectAll("path")
+      .data(collection.features)
+    .enter().append("path")
+      .attr("d", d3.geo.path().projection(xy));
+
+});
+
+d3.json("../data/datapublishers.json", function(data) {
+
+var force = d3.layout.force()
+                        .charge(-0.9)
+                        .nodes(data.features)
+                        .size([960, 500])  //without size does not work
+                        .size([100, 100])
+                        .start();
+
+ var to_bubble=[]
+  filter_by_city =function (city)
+  {
+
+       data.features.forEach(function(data) { 
+        if (data.properties.city==city) 
+            { 
+                to_bubble.push(data)
+            }
+
+            
+   })
+       return to_bubble;
+  }
+
+                   
+                    var node = points_svg.selectAll("g")
+                        .data(data.features)  //filter_by_city('Paris')
+                        .enter().append("g")
+                        .attr("id", function(d){ return d.properties.city;})
+                        
+                        
+                       
+                       node.append("circle")
+                       // .attr("cx", function(d) { return d.x; })
+                        //.attr("cy", function(d) { return d.y; })
+                        .attr("transform", function(d) { 
+
+                          return "translate(" + xy(d.geometry.coordinates) + ")"; })
+                        .attr("id", function(d){ return d.id;})
+                        .attr("class", "node")
+                        .attr('fill','blue')
+                        .attr('opacity',0.5)
+                        .attr('r', function(d) { 
+
+                          return d.properties.num_collections*5})
+                        .call(force.drag);
+
+                       console.warn(node)
+
+                       force.on("tick", function() {
+                        node.attr(
+                            "transform", 
+                            function(d) { return "translate(" + d.x + "," + d.y + ")"; }
+                        );
+                    }); 
+                    
+
+ 
+});
+
+
+
+
+
+    </script><p>
+ 
+    <script type="text/javascript">
+
+
+
+    </script>
+  </body>
+</html>
